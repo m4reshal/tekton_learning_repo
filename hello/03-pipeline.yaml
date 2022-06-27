@@ -1,0 +1,43 @@
+---
+apiVersion: tekton.dev/v1beta1
+kind: Task
+metadata:
+  name: say-something
+spec:
+  params:
+    - name: say-what 
+      description:  What should i say
+      type: string
+      default: hello
+    - name: pause-duration
+      description: How long to wait before saying something
+      type: string
+      default: "0"
+  steps:
+    - name: say-it
+      image: registry.access.redhat.com/ubi8/ubi
+      command:
+        - /bin/bash
+      args: ['-c', 'sleep $(params.pause-duration) && echo Hello $(params.say-what)']
+---
+apiVersion: tekton.dev/v1beta1
+kind: Pipeline
+metadata: 
+  name: say-things
+spec:
+  tasks:
+    - name: first-task
+      params:
+        - name: pause-duration
+          value: "2"
+        - name: say-what
+          value: "Hello, this is the first task"
+      taskRef:
+        name: say-something
+
+    - name: second-task
+      params:
+        - name: say-what
+          value: "And this is the second task"
+      taskRef:
+        name: say-something
